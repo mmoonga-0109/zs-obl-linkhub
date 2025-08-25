@@ -78,7 +78,7 @@
                     <div class="flex items-center gap-4">
                          <!-- LOGO GOES HERE -->
                          <img src="https://github.com/mmoonga-0109/zs-obl-linkhub/blob/main/ZAMBIA%20SUGAR%20LOGOS-04.png?raw=true" alt="Zambia Sugar Logo" class="h-12">
-                         <h1 class="text-2xl md:text-3xl font-extrabold text-slate-800">Supply Chain-Outbound Logistics Link Hub</h1>
+                         <h1 class="text-2xl md:text-3xl font-extrabold text-slate-800">SC-Outbound Logistics Link Hub</h1>
                     </div>
                     <button id="openAddLinkModalBtn" class="bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-blue-700 transition duration-200 flex items-center justify-center shadow-sm hover:shadow-md flex-shrink-0">
                         <i data-feather="plus" class="w-5 h-5 mr-1"></i>
@@ -148,9 +148,10 @@
                         <label for="linkDescription" class="block text-sm font-medium text-slate-600 mb-1">Description</label>
                         <textarea id="linkDescription" name="linkDescription" rows="3" required placeholder="A short description of the link..." class="w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 transition"></textarea>
                     </div>
-                    <button type="submit" id="modalSubmitBtn" class="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out flex items-center justify-center">
-                        Add Link
-                    </button>
+                    <div class="flex justify-end items-center gap-4 pt-4">
+                        <button type="button" id="cancelBtn" class="bg-slate-100 text-slate-700 font-semibold py-2 px-5 rounded-lg hover:bg-slate-200 transition">Cancel</button>
+                        <button type="submit" id="modalSubmitBtn" class="bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-blue-700 transition">Save Link</button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -218,12 +219,14 @@
             const linkForm = document.getElementById('linkForm');
             const openModalBtn = document.getElementById('openAddLinkModalBtn');
             const closeModalBtn = document.getElementById('closeModalBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
             const modal = document.getElementById('linkModal');
             const searchInput = document.getElementById('searchInput');
 
             linkForm.addEventListener('submit', handleFormSubmit);
             openModalBtn.addEventListener('click', openAddModal);
             closeModalBtn.addEventListener('click', () => modal.classList.add('hidden'));
+            cancelBtn.addEventListener('click', () => modal.classList.add('hidden'));
             modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
             searchInput.addEventListener('input', handleSearch);
         }
@@ -305,7 +308,7 @@
                         </div>
                     </div>
                     <p class="text-xs font-medium text-blue-600 mb-3">${category}</p>
-                    <p class="description-text text-slate-600 text-sm leading-relaxed">${displayDescription}</p>
+                    <p class="description-text text-slate-600 text-sm leading-relaxed text-justify">${displayDescription}</p>
                 </div>
                 <div class="mt-4 flex justify-between items-center">
                     <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="inline-block text-blue-700 font-semibold text-sm bg-blue-100 hover:bg-blue-200 px-3 py-1 rounded-full">
@@ -339,7 +342,7 @@
             document.getElementById('linkForm').reset();
             document.getElementById('linkId').value = '';
             document.getElementById('modalTitle').textContent = 'Add a New Link';
-            document.getElementById('modalSubmitBtn').textContent = 'Add Link';
+            document.getElementById('modalSubmitBtn').textContent = 'Save Link';
             modal.classList.remove('hidden');
             feather.replace();
         }
