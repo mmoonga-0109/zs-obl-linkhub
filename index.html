@@ -161,14 +161,20 @@
     <script type="module">
         // Import necessary functions from the Firebase SDK
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, serverTimestamp, deleteDoc, doc, updateDoc, getDoc, writeBatch, orderBy } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-        // --- Firebase Configuration and Initialization ---
-        // These global variables are provided by the environment and are essential for the app to work.
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-link-hub';
-        const firebaseConfigString = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // --- YOUR FIREBASE CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAihppeb1-HITdmbP87I5p_FSefSaNrO-E",
+            authDomain: "zs-obl-linkhub.firebaseapp.com",
+            projectId: "zs-obl-linkhub",
+            storageBucket: "zs-obl-linkhub.appspot.com",
+            messagingSenderId: "840957134694",
+            appId: "1:840957134694:web:db1d9ef7f2f5db7fce2aa7",
+            measurementId: "G-PKLM2MYHHP"
+        };
+        // -------------------------------------------
 
         let app, db, auth;
         let allLinks = []; // Cache for all links to enable client-side search
@@ -177,35 +183,33 @@
         // --- Main Application Logic ---
         document.addEventListener('DOMContentLoaded', async () => {
             try {
-                if (!firebaseConfigString) {
-                    throw new Error("Firebase configuration is missing. This app can only run in its intended environment.");
-                }
-                const firebaseConfig = JSON.parse(firebaseConfigString);
-
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
 
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        await setupRealtimeListener();
-                    }
-                });
-
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                await signInAnonymously(auth);
                 
                 setupEventListeners();
+                await setupRealtimeListener(); 
                 feather.replace();
 
             } catch (error) {
                 console.error("Initialization Error:", error);
-                const loadingState = document.getElementById('loadingState');
-                if (loadingState) {
-                   loadingState.innerHTML = `<p class="text-red-500 text-center col-span-full">Error: ${error.message}</p>`;
+                const linksContainer = document.getElementById('linksContainer');
+                if (linksContainer) {
+                    if (error.code === 'auth/configuration-not-found') {
+                        linksContainer.innerHTML = `<div class="text-red-600 bg-red-100 p-4 rounded-lg text-center col-span-full">
+                            <p class="font-bold">Configuration Error</p>
+                            <p class="mt-2">Anonymous sign-in is not enabled in your Firebase project. To fix this:</p>
+                            <ol class="text-left list-decimal list-inside mt-2 text-sm">
+                                <li>Go to your Firebase Console -> Build -> <b>Authentication</b>.</li>
+                                <li>Click the <b>"Sign-in method"</b> tab.</li>
+                                <li>Click on <b>"Anonymous"</b> in the provider list and enable it.</li>
+                            </ol>
+                        </div>`;
+                    } else {
+                        linksContainer.innerHTML = `<p class="text-red-500 text-center col-span-full">Error: ${error.message}</p>`;
+                    }
                 }
             }
         });
@@ -225,7 +229,7 @@
         }
 
         async function setupRealtimeListener() {
-            const linksCollectionPath = `/artifacts/${appId}/public/data/links`;
+            const linksCollectionPath = "links"; 
             const q = query(collection(db, linksCollectionPath), orderBy("order", "asc"));
 
             onSnapshot(q, (querySnapshot) => {
@@ -269,7 +273,7 @@
                     cards.forEach((card, index) => {
                         const docId = card.dataset.id;
                         if (docId) {
-                            const docRef = doc(db, `/artifacts/${appId}/public/data/links/${docId}`);
+                            const docRef = doc(db, "links", docId);
                             batch.update(docRef, { order: index });
                         }
                     });
@@ -341,7 +345,7 @@
         }
 
         async function openEditModal(id) {
-            const linkDocPath = `/artifacts/${appId}/public/data/links/${id}`;
+            const linkDocPath = `links/${id}`;
             const docSnap = await getDoc(doc(db, linkDocPath));
             if (docSnap.exists()) {
                 const link = docSnap.data();
@@ -367,11 +371,11 @@
                 category: document.getElementById('linkCategory').value.trim(),
                 description: document.getElementById('linkDescription').value.trim(),
             };
-            const linksCollectionPath = `/artifacts/${appId}/public/data/links`;
+            const linksCollectionPath = "links";
 
             try {
                 if (linkId) { // Editing existing link
-                    const linkDocPath = `/artifacts/${appId}/public/data/links/${linkId}`;
+                    const linkDocPath = `links/${linkId}`;
                     await updateDoc(doc(db, linkDocPath), linkData);
                 } else { // Adding new link
                     linkData.createdAt = serverTimestamp();
@@ -387,7 +391,7 @@
         async function handleDeleteLink(id) {
             if (window.confirm('Are you sure you want to delete this link?')) {
                 try {
-                    const linkDocPath = `/artifacts/${appId}/public/data/links/${id}`;
+                    const linkDocPath = `links/${id}`;
                     await deleteDoc(doc(db, linkDocPath));
                 } catch (error) {
                     console.error("Error deleting link: ", error);
